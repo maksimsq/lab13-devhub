@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lab 13 Developer Portal - PostmanLite API Client and JWT Decoder toolbox. Containerized via Docker and deployed on Render. Developed by Maksim.">
+  <title>PostmanLite & DevHub | Lab 13</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Decorative background elements -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon">🚀</div>
+        <div class="logo-text">
+          <h1>PostmanLite & DevHub</h1>
+          <span class="logo-sub">Lab 13 deployment</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-indicator-dot success"></span>
+        <span class="status-text" id="header-status-text">Proxy Server: Ready</span>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="app-nav">
+      <button class="nav-btn active" id="nav-btn-tester" onclick="switchTab('tester')">
+        <span class="icon">📡</span> API Tester
+      </button>
+      <button class="nav-btn" id="nav-btn-utils" onclick="switchTab('utils')">
+        <span class="icon">🔑</span> JWT & Utils
+      </button>
+      <button class="nav-btn" id="nav-btn-about" onclick="switchTab('about')">
+        <span class="icon">👤</span> About & Lab
+      </button>
+      <button class="nav-btn" id="nav-btn-deploy" onclick="switchTab('deploy')">
+        <span class="icon">🐳</span> Docker & Hosting
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+
+      <!-- TAB 1: API REQUEST TESTER -->
+      <section id="tab-tester" class="content-tab active">
+        <div class="grid-layout tester-grid">
+          
+          <!-- Request Panel -->
+          <div class="card col-span-2 req-card">
+            <div class="card-header">
+              <h2>HTTP Request Builder</h2>
+              <span class="badge badge-accent">CORS-Proxy Mode</span>
+            </div>
+            
+            <div class="req-address-bar">
+              <select id="req-method" class="req-method-select">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+              </select>
+              <input type="url" id="req-url" placeholder="Enter request URL (e.g. https://jsonplaceholder.typicode.com/todos/1)" value="https://jsonplaceholder.typicode.com/todos/1" required>
+              <button class="btn btn-primary" onclick="sendApiRequest()" id="btn-send-req">Send</button>
+            </div>
+
+            <!-- Headers / Body tabs -->
+            <div class="req-tabs-container">
+              <div class="req-tabs-nav">
+                <button class="req-tab-btn active" id="req-tab-btn-headers" onclick="switchReqTab('headers')">Headers</button>
+                <button class="req-tab-btn" id="req-tab-btn-body" onclick="switchReqTab('body')">Body (JSON)</button>
+              </div>
+
+              <!-- Headers Config Section -->
+              <div class="req-tab-content active" id="req-tab-content-headers">
+                <p class="card-description" style="margin-bottom: 0.5rem;">Configure custom HTTP headers for your request.</p>
+                <div id="headers-list" class="headers-list-container">
+                  <!-- Header row template -->
+                  <div class="header-row">
+                    <input type="text" class="header-key" placeholder="Key (e.g. Content-Type)">
+                    <input type="text" class="header-value" placeholder="Value (e.g. application/json)">
+                    <button class="btn btn-sm btn-remove-header" onclick="removeHeaderRow(this)">&times;</button>
+                  </div>
+                </div>
+                <button class="btn btn-sm" onclick="addHeaderRow()" style="margin-top: 0.5rem;">+ Add Header</button>
+              </div>
+
+              <!-- Body Config Section -->
+              <div class="req-tab-content" id="req-tab-content-body">
+                <p class="card-description" style="margin-bottom: 0.5rem;">Specify raw JSON body payload (only valid for POST, PUT, DELETE requests).</p>
+                <textarea id="req-body-content" class="font-mono" placeholder='{\n  "name": "Maksim",\n  "project": "Lab 13"\n}' rows="6"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Sidebar -->
+          <div class="card col-span-1 history-card">
+            <div class="card-header">
+              <h2>Request History</h2>
+              <button class="btn btn-sm" onclick="clearRequestHistory()">Clear</button>
+            </div>
+            <div id="history-list-box" class="history-list-box">
+              <!-- Dynamically populated -->
+              <div class="empty-state" style="padding: 1.5rem; font-size: 0.8rem;">No request history.</div>
+            </div>
+          </div>
+
+          <!-- Response Panel -->
+          <div class="card col-span-3 res-card">
+            <div class="card-header">
+              <h2>Response Monitor</h2>
+              <div class="res-meta-info" id="res-meta-info" style="display: none;">
+                <span class="res-status-badge" id="res-status">--</span>
+                <span class="res-stat-badge">Time: <strong id="res-time">0 ms</strong></span>
+                <span class="res-stat-badge">Size: <strong id="res-size">0 B</strong></span>
+              </div>
+            </div>
+
+            <div id="response-content-wrapper">
+              <div class="empty-state" style="padding: 4rem 2rem;">
+                <p>Send an API request to see the raw output, status codes, and latency measurements.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: JWT & UTILITY HUB -->
+      <section id="tab-utils" class="content-tab">
+        <div class="grid-layout">
+          <!-- JWT Decoder Card -->
+          <div class="card col-span-2">
+            <div class="card-header">
+              <h2>JSON Web Token (JWT) Decoder</h2>
+              <span class="badge">Local Util</span>
+            </div>
+            <p class="card-description">Paste a JWT token on the left to instantly parse and verify its header and payload contents.</p>
+            
+            <div class="jwt-decoder-box">
+              <div class="jwt-input-col">
+                <label for="jwt-raw-input">Encoded Token</label>
+                <textarea id="jwt-raw-input" placeholder="Paste eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." rows="12" oninput="decodeJwt()"></textarea>
+              </div>
+
+              <div class="jwt-output-col">
+                <div class="jwt-part">
+                  <span class="jwt-part-lbl text-pink">Header (Algorithms & Types)</span>
+                  <pre><code id="jwt-header-output" class="font-mono">Waiting for token...</code></pre>
+                </div>
+                <div class="jwt-part" style="margin-top: 0.75rem;">
+                  <span class="jwt-part-lbl text-cyan">Payload (Claims & Data)</span>
+                  <pre><code id="jwt-payload-output" class="font-mono">Waiting for token...</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- URL and text utility -->
+          <div class="card col-span-1">
+            <div class="card-header">
+              <h2>URL Encoder/Decoder</h2>
+              <span class="badge">Local Util</span>
+            </div>
+            <p class="card-description">Encode and decode web URLs to format queries and parameters safely.</p>
+            
+            <div class="tool-content" style="height: 100%; justify-content: space-between;">
+              <div class="form-group">
+                <label>Source String</label>
+                <textarea id="url-input" placeholder="Enter text..." rows="4"></textarea>
+              </div>
+
+              <div class="buttons-grid" style="margin: 0.5rem 0;">
+                <button class="btn btn-primary" onclick="processUrlEncode(true)" style="justify-content: center;">Encode</button>
+                <button class="btn btn-primary" onclick="processUrlEncode(false)" style="justify-content: center; background: linear-gradient(135deg, var(--color-secondary), #0891b2);">Decode</button>
+              </div>
+
+              <div class="form-group">
+                <label>Result</label>
+                <textarea id="url-output" placeholder="Output result..." rows="4" readonly></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ABOUT DEVELOPER & LAB -->
+      <section id="tab-about" class="content-tab">
+        <div class="grid-layout">
+          <!-- Profile Card with GIF avatar -->
+          <div class="card profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar-container">
+                <img src="a_d031798e882b18c3ee132137addb707f.gif" class="profile-avatar-gif" alt="Maksim avatar">
+              </div>
+              <div class="profile-title">
+                <h2>Maksim</h2>
+                <p>Developer & Student</p>
+              </div>
+            </div>
+            <p class="profile-bio">
+              Welcome to my portfolio application built for Laboratory Work #13. This app demonstrates automated containerization and deployment workflow.
+            </p>
+            <div class="profile-links">
+              <a href="https://github.com/maksimsq" target="_blank" class="btn btn-primary" id="btn-github-profile">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                GitHub Profile
+              </a>
+            </div>
+          </div>
+
+          <!-- Lab details Card -->
+          <div class="card detail-card col-span-2">
+            <div class="card-header">
+              <h2>Laboratory Work #13 Details</h2>
+            </div>
+            <div class="lab-details-content">
+              <h3>🎯 Work Goals</h3>
+              <p>To master the deployment pipeline of modern web applications: selecting hosting, configuring execution environment, uploading code repository, containerizing using Docker, and setting up deployment triggers.</p>
+
+              <h3>📋 Implementation Specs</h3>
+              <div class="spec-grid">
+                <div class="spec-box">
+                  <strong>Backend Tech</strong>
+                  <span>Node.js / Express</span>
+                </div>
+                <div class="spec-box">
+                  <strong>Frontend Tech</strong>
+                  <span>HTML5, Vanilla CSS, JS ES6</span>
+                </div>
+                <div class="spec-box">
+                  <strong>Containerization</strong>
+                  <span>Docker (Alpine Node Base)</span>
+                </div>
+                <div class="spec-box">
+                  <strong>Hosting Server</strong>
+                  <span>Render.com (Free Web Service)</span>
+                </div>
+              </div>
+
+              <h3>🛡️ Key Skills Mastered</h3>
+              <ul class="skills-list">
+                <li>Docker container design with efficient multi-stage/alpine packaging</li>
+                <li>Production Node.js environment configuration</li>
+                <li>Cloud deployment trigger configurations tied to GitHub commits</li>
+                <li>Responsive interface implementation with CSS grids and glassmorphism</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: DOCKER & HOSTING -->
+      <section id="tab-deploy" class="content-tab">
+        <div class="grid-layout">
+          <!-- Docker Setup -->
+          <div class="card code-card col-span-2">
+            <div class="card-header">
+              <h2>Container Configuration (Dockerfile)</h2>
+              <span class="badge badge-accent">Production Setup</span>
+            </div>
+            <p class="card-description">This project uses a Dockerfile to package the Node.js app into a portable, lightweight container.</p>
+            
+            <div class="code-editor-mock">
+              <div class="editor-header">
+                <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                <span class="file-tab">Dockerfile</span>
+              </div>
+              <pre><code><span class="token keyword">FROM</span> node:18-alpine
+
+<span class="token comment"># Set working directory</span>
+<span class="token keyword">WORKDIR</span> /app
+
+<span class="token comment"># Copy dependencies config files</span>
+<span class="token keyword">COPY</span> package*.json ./
+
+<span class="token comment"># Install production dependencies</span>
+<span class="token keyword">RUN</span> npm ci --only=production
+
+<span class="token comment"># Copy app code files</span>
+<span class="token keyword">COPY</span> . .
+
+<span class="token comment"># Expose application port</span>
+<span class="token keyword">EXPOSE</span> 3000
+
+<span class="token comment"># Start app server</span>
+<span class="token keyword">CMD</span> [<span class="token string">"node"</span>, <span class="token string">"server.js"</span>]</code></pre>
+            </div>
+          </div>
+
+          <!-- Deployment Steps -->
+          <div class="card steps-card col-span-1">
+            <div class="card-header">
+              <h2>Deployment Pipeline</h2>
+            </div>
+            <ol class="steps-list">
+              <li>
+                <div class="step-num">1</div>
+                <div class="step-body">
+                  <strong>Create GitHub Repo</strong>
+                  <p>Initialize a public repository on your GitHub account.</p>
+                </div>
+              </li>
+              <li>
+                <div class="step-num">2</div>
+                <div class="step-body">
+                  <strong>Push Code</strong>
+                  <p>Push your commits containing the server code and Dockerfile.</p>
+                </div>
+              </li>
+              <li>
+                <div class="step-num">3</div>
+                <div class="step-body">
+                  <strong>Connect Render.com</strong>
+                  <p>Create a Web Service on Render, connect your repo, select Docker deployment type, and deploy.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 Maksim. Laboratory Work #13. All rights reserved.</p>
+      <p class="footer-links">
+        <a href="https://github.com/maksimsq" target="_blank">GitHub</a> &bull; 
+        <a href="https://render.com" target="_blank">Render</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- JavaScript file -->
+  <script src="app.js"></script>
+</body>
+</html>
